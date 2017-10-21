@@ -31,10 +31,12 @@ def get_args():
     Parse the command line arguments.
 
     """
-    parser = argparse.ArgumentParser(description="Gauss eliminatino algorithm for computing the solution to a "
+    parser = argparse.ArgumentParser(description="Gauss elimination algorithm for computing the solution to a "
                                                  "linear system of equations Ax = b.")
     parser.add_argument('--input_file',
                         help='Specify the path to the pickle file containing a tuple containing matrix A and vector b.')
+    parser.add_argument('--output_file',
+                        help='Specify the path to the which the solution vector x needs to saved.')
     args = parser.parse_args()
     return args
 
@@ -42,7 +44,7 @@ def get_args():
 def gauss_elimination(A, b):
     """
     The Gauss Elimination algorithm to find solution to the system of linear equation Ax = b.
-    Returns the solution x.
+    Returns the solution vector x.
 
     """
     pass
@@ -53,3 +55,4 @@ if __name__ == "__main__":
     # b is assumed to be the column vector.
     A, b = pickle.load(open(args.input_file))
     x = gauss_elimination(A, b)
+    pickle.dump(x, open(args.outout_file, "w"))
