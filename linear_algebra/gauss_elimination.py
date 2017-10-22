@@ -22,9 +22,12 @@ The submission type is set to Online Text. Simply paste the github URL to your p
 """
 
 import argparse
+import copy
+import logging as LOG
 import numpy as np
 import pickle
-import copy
+
+LOG.basicConfig(level=LOG.INFO)
 
 def get_args():
     """
@@ -55,17 +58,9 @@ def _get_row_echelon_form(A):
     for k in range(min(m, n - 1)):
         # Find the pivot and swap rows.
         i_max = k + np.argmax(np.abs(A[k:, k]))
-        # This catches divide by zero.
+        # This catches divide by zero error.
         if A[i_max, k] == 0:
             continue
-            """
-            print "The highest pivot is 0."
-            if A[i_max, n - 1] == 0:
-                print "The corresponding b is also 0. Hence, the system could still be consistent."
-                continue
-            else:
-                raise ValueError("Inconsistent system of equations: The sub-matrix is singular.")
-            """
 
         # Swap axes with the pivot i_max row.
         A[[i_max, k]] = A[[k, i_max]]
@@ -88,7 +83,7 @@ def _back_substitution(T):
     """
     m, n = T.shape
     if n != m + 1:
-        raise ValueError("Backsubstituion must get array of shape : m, m +1")
+        raise ValueError("Back substitution must get array of shape : m, m +1")
 
     x = np.zeros(m)
     for i in reversed(range(m)):
@@ -113,7 +108,7 @@ def gauss_elimination(Ab):
     Ab = Ab.astype(np.float64)
 
     R = _get_row_echelon_form(Ab)
-    print "Row echelon augmented matrix: \n%s\n" % R
+    LOG.debug("Row echelon augmented matrix: \n%s\n" % R)
 
     # Determine if the system of equations are inconsistent.
     m, n = R.shape
@@ -128,8 +123,7 @@ def gauss_elimination(Ab):
     # Slice out the free variable rows.
     # This reduces the computation for back substitution.
     T = R[:free_i + 1, :]
-    print "Row echelon free variables sliced augmented matrix: \n%s\n" % T
-    #print free_i
+    LOG.debug("Row echelon free variables sliced augmented matrix: \n%s\n" % T)
 
     # Slice out the columns on the right.
     # This reduces the computation for back substitution.
@@ -137,7 +131,7 @@ def gauss_elimination(Ab):
     b_row = T[:, n - 1]
     b_row1 = b_row.reshape((len(b_row), 1))
     S = np.hstack((S, b_row1))
-    print "Row echelon free variables sliced, square converted augmented matrix: \n%s\n" % S
+    LOG.debug("Row echelon free variables sliced, square converted augmented matrix: \n%s\n" % S)
 
     # Back substitution.
     x_unique = _back_substitution(S)
@@ -149,7 +143,8 @@ if __name__ == "__main__":
     args = get_args()
     Ab = pickle.load(open(args.input_file))
     x = gauss_elimination(Ab)
-    print "The solution is: %s" % x
-    if not args.outout_file:
-        args.outout_file = "./x.pickle"
-    pickle.dump(x, open(args.outout_file, "w"))
+    LOG.info("The solution is: %s" % x)
+    if not args.output_file:
+        args.output_file = "./x.pickle"
+    LOG.info("Writing the solution array to %s" % args.output_file)
+    pickle.dump(x, open(args.output_file, "w"))
